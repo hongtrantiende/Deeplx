@@ -1,0 +1,28 @@
+name: instabox-watchdog
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: watchdog tick
+        run: |
+          python3 instabox-watchdog.py \
+            -m "$INSTABOX_MACHINE_ID" \
+            -k "$INSTABOX_API_KEY" \
+            --log watchdog.log \
+            --state-dir .wdstate
+        env:
+          INSTABOX_MACHINE_ID: ${{ secrets.INSTABOX_MACHINE_ID }}
+          INSTABOX_API_KEY: ${{ secrets.INSTABOX_API_KEY }}
+      - name: show tick result
+        if: always()
+        run: cat watchdog.log || true
